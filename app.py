@@ -17,11 +17,18 @@ app.add_middleware(
 session = ort.InferenceSession("rps_ai.onnx")
 input_name = session.get_inputs()[0].name
 
+IMG_SIZE = 640 
+
 @app.post("/detect")
 async def detect(file: UploadFile = File(...)):
     img = Image.open(file.file).convert("RGB")
-    img = np.array(img).transpose(2,0,1).astype(np.float32) / 255.0
-    img = np.expand_dims(img, 0)
+
+    img = img.resize((IMG_SIZE, IMG_SIZE))
+
+    img = np.array(img).astype(np.float32) / 255.0
+    img = img.transpose(2, 0, 1)
+    img = np.expand_dims(img, axis=0)
 
     outputs = session.run(None, {input_name: img})
+
     return {"detections": outputs[0].tolist()}
