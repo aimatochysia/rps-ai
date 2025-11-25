@@ -2,8 +2,19 @@ import onnxruntime as ort
 from fastapi import FastAPI, File, UploadFile
 import numpy as np
 from PIL import Image
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 session = ort.InferenceSession("rps_ai.onnx")
 
 @app.post("/detect")
