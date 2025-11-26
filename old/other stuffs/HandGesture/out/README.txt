@@ -1,0 +1,1 @@
+YOLO format dataset made by Petra Michael, adapted from https://www.kaggle.com/datasets/roobansappani/hand-gesture-recognition

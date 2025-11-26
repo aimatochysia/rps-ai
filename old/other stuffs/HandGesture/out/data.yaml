@@ -1,0 +1,11 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+nc: 3
+names: ['Paper', 'Rock', 'Scissors']
+roboflow:
+  workspace: petra-michael
+  project: rock-paper-scissor-cnnoz-q5v8m
+  version: 1
+  license: CC BY 4.0
+  url: auto
