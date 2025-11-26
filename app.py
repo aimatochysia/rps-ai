@@ -16,7 +16,7 @@ app.add_middleware(
 
 session = ort.InferenceSession("rps_ai.onnx")
 
-CLASS_NAMES = ["rock", "paper", "scissors"]
+CLASS_NAMES = ['diaphragm', 'heart', 'left_lobe', 'right_lobe']
 CONFIDENCE_THRESHOLD = 0.5
 IMG_SIZE = 640
 
@@ -35,28 +35,41 @@ async def detect(file: UploadFile = File(...)):
     outputs = session.run(None, {input_name: img_array})
 
     predictions = outputs[0][0]
-
     predictions = predictions.T
 
     detections = []
 
     for pred in predictions:
         x_center, y_center, width, height = pred[:4]
-        class_scores = pred[4:]
+        class_scores = np.array(pred[4:])
 
-        class_id = np.argmax(class_scores)
+        if len(class_scores) > 0:
+            class_scores[0] = -1e9
+
+        class_id = int(np.argmax(class_scores))
         confidence = float(class_scores[class_id])
 
-        if confidence >= CONFIDENCE_THRESHOLD:
-            x1 = float(x_center - width / 2)
-            y1 = float(y_center - height / 2)
-            x2 = float(x_center + width / 2)
-            y2 = float(y_center + height / 2)
+        if confidence < CONFIDENCE_THRESHOLD:
+            continue
+        
+        if class_id == 0:  
+            continue
+        
+        x1 = float(x_center - width / 2)
+        y1 = float(y_center - height / 2)
+        x2 = float(x_center + width / 2)
+        y2 = float(y_center + height / 2)
 
-            detections.append({
-                "class": CLASS_NAMES[class_id],
-                "confidence": confidence,
-                "bbox": [x1, y1, x2, y2]
-            })
-    detections = sorted(detections, key=lambda d: d["confidence"], reverse=True)[:2]
-    return {"detections": detections}
+        detections.append({
+            "class": CLASS_NAMES[class_id],
+            "confidence": confidence,
+            "bbox": [x1, y1, x2, y2]
+        })
+
+    best_by_class = {}
+    for det in detections:
+        cls = det["class"]
+        if cls not in best_by_class or det["confidence"] > best_by_class[cls]["confidence"]:
+            best_by_class[cls] = det
+
+    return {"detections": list(best_by_class.values())}
