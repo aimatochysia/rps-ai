@@ -43,18 +43,12 @@ async def detect(file: UploadFile = File(...)):
         x_center, y_center, width, height = pred[:4]
         class_scores = np.array(pred[4:])
 
-        if len(class_scores) > 0:
-            class_scores[0] = -1e9
-
         class_id = int(np.argmax(class_scores))
         confidence = float(class_scores[class_id])
 
         if confidence < CONFIDENCE_THRESHOLD:
             continue
-        
-        if class_id == 0:  
-            continue
-        
+
         x1 = float(x_center - width / 2)
         y1 = float(y_center - height / 2)
         x2 = float(x_center + width / 2)
